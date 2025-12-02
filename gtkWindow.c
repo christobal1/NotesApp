@@ -4,30 +4,95 @@
 #include <unistd.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "tinyfiledialogs.h"
 
 char programmName[] = "NotesApp";
 GtkWidget* window;
 GtkWidget* hbox;
 GtkWidget* vbox;
 
+char* g_filePath = "/tmp/notesapp_placeholder.txt";
+
 GtkWidget* g_textview;
 
-void on_button_clicked(GtkWidget* widget, gpointer data);
 
 
-void save_to_file(char* text){
-    int fd = open("savefiles/save.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+
+
+
+
+char* file_selection(){
+    const char* filters[] = { "*.txt", "*.md"};
+
+    const char* file = tinyfd_openFileDialog(
+        "Datei wählen",
+        "",
+        3,
+        filters,
+        "Text oder md Dateien",
+        0
+    );
+
+    if (!file) {
+        printf("Abgebrochen\n");
+        return NULL;
+    }
+
+    printf("Ausgewählter absoluter Pfad:\n%s\n", file);
+
+    // eigene Kopie erzeugen
+    char* copy = malloc(strlen(file) + 1);
+    if (!copy) return NULL;
+
+    strcpy(copy, file);
+
+    return copy;
+}
+
+void on_button_clicked_save(GtkWidget* widget, gpointer data);
+
+
+
+
+
+
+
+
+
+
+void save_to_file(char* text, char* filePath){
+
+    if(!filePath) return;
+
+    int fd = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    if(fd == -1){
+        perror("Fehler beim Öffnen der Datei\n");
+        return;
+    }
 
     ssize_t bytesWritten = write(fd, text, strlen(text));
     if(bytesWritten == -1){
-        perror("Fehler bei write");
+        perror("Fehler bei write\n");
     }
 
     close(fd);
 }
 
 
-void on_button_clicked(GtkWidget* widget, gpointer data){
+
+
+
+
+
+
+void on_button_clicked_save(GtkWidget* widget, gpointer data){
+
+    if(!g_filePath){
+        printf("Kein gültiger Pfad!\n");
+        return;
+    }
 
     GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_textview));
     GtkTextIter start, end;
@@ -35,11 +100,30 @@ void on_button_clicked(GtkWidget* widget, gpointer data){
 
     char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
     
-    save_to_file(text);
+    save_to_file(text, g_filePath);
 
     g_free(text);
 
 }
+
+
+void on_button_clicked_browse(GtkWidget* widget, gpointer data){
+
+    char* newPath = file_selection();
+
+    if(newPath){
+        g_filePath = newPath;
+    } else {
+        printf("Dateipfad abgebrochen, Auswahl bleibt unverändert\n");
+    }
+
+}
+
+
+
+
+
+
 
 
 void gtkWindow(){
@@ -54,7 +138,7 @@ void gtkWindow(){
 
     double windowX = 0.8 * geometry.width;
     double windowY = 0.8 * geometry.height;
-    printf("Starte WIndow mit: %.2f x %.2f\n", windowX, windowY);
+    printf("Starte Window mit: %.2f x %.2f\n", windowX, windowY);
 
     //Fenster erstellen
 
@@ -85,9 +169,12 @@ void gtkWindow(){
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    GtkWidget* label1 = gtk_label_new("Label1");
-    GtkWidget* label2 = gtk_label_new("Label2");
-    GtkWidget* button1 = gtk_button_new_with_label("Button");
+
+    GtkWidget* buttonSave = gtk_button_new_with_label("Save");
+    GtkWidget* buttonBrowse = gtk_button_new_with_label("Browse");
+    
+
+
 
     GtkWidget* scroll = gtk_scrolled_window_new(NULL, NULL);
     GtkWidget* textview = gtk_text_view_new();
@@ -96,20 +183,21 @@ void gtkWindow(){
     gtk_container_add(GTK_CONTAINER(scroll), textview);
     gtk_widget_set_size_request(scroll, 400, 300);
 
-    gtk_box_pack_start(GTK_BOX(hbox), label1, FALSE, FALSE, 10);
-    gtk_box_pack_start(GTK_BOX(hbox), label2, FALSE, FALSE, 10);
-    gtk_box_pack_start(GTK_BOX(hbox), button1, FALSE, FALSE, 10);
-    gtk_box_pack_start(GTK_BOX(hbox), scroll, TRUE, TRUE, 10);
+    gtk_box_pack_start(GTK_BOX(hbox), buttonSave, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox), buttonBrowse, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox), scroll, TRUE, TRUE, 5);
 
-    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 10);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 5);
 
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
-
-
     
-    g_signal_connect(button1, "clicked", G_CALLBACK(on_button_clicked), NULL);
 
+
+    //Signale
+    
+    g_signal_connect(buttonSave, "clicked", G_CALLBACK(on_button_clicked_save), NULL);
+    g_signal_connect(buttonBrowse, "clicked", G_CALLBACK(on_button_clicked_browse), NULL);
 
     // ----------------------------------------------------
 
