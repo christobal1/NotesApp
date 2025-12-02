@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <string.h>
 #include <gtk/gtk.h>
 
@@ -10,11 +12,35 @@ GtkWidget* vbox;
 
 GtkWidget* g_textview;
 
-void on_button_clicked(GtkWidget* widget, gpointer data){
-    const char* text = gtk_entry_get_text(GTK_ENTRY());
+void on_button_clicked(GtkWidget* widget, gpointer data);
 
-    //Saving Logic
+
+void save_to_file(char* text){
+    int fd = open("savefiles/save.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    ssize_t bytesWritten = write(fd, text, strlen(text));
+    if(bytesWritten == -1){
+        perror("Fehler bei write");
+    }
+
+    close(fd);
 }
+
+
+void on_button_clicked(GtkWidget* widget, gpointer data){
+
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_textview));
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+
+    char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    
+    save_to_file(text);
+
+    g_free(text);
+
+}
+
 
 void gtkWindow(){
 
@@ -61,7 +87,7 @@ void gtkWindow(){
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     GtkWidget* label1 = gtk_label_new("Label1");
     GtkWidget* label2 = gtk_label_new("Label2");
-    GtkWidget* button1 = gtk_button_new();
+    GtkWidget* button1 = gtk_button_new_with_label("Button");
 
     GtkWidget* scroll = gtk_scrolled_window_new(NULL, NULL);
     GtkWidget* textview = gtk_text_view_new();
