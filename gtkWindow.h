@@ -5,8 +5,9 @@
 
 extern char programmName[];
 extern GtkWidget* window;
-extern GtkWidget* hbox;
 extern GtkWidget* vbox;
+extern GtkWidget* hbox1;
+extern GtkWidget* hbox2;
 extern GtkWidget* g_entry;
 char* file_selection();
 extern void save_to_file(char* text, char* filePath);

@@ -8,8 +8,10 @@
 
 char programmName[] = "NotesApp";
 GtkWidget* window;
-GtkWidget* hbox;
 GtkWidget* vbox;
+GtkWidget* hbox1;
+GtkWidget* hbox2;
+
 
 char* g_filePath = "/tmp/notesapp_placeholder.txt";
 
@@ -28,7 +30,7 @@ char* file_selection(){
     const char* file = tinyfd_openFileDialog(
         "Datei wählen",
         "",
-        3,
+        2,
         filters,
         "Text oder md Dateien",
         0
@@ -112,6 +114,11 @@ void on_button_clicked_browse(GtkWidget* widget, gpointer data){
     char* newPath = file_selection();
 
     if(newPath){
+
+        if(g_filePath != NULL && g_filePath != "/tmp/notesapp_placeholder.txt"){
+            free(g_filePath);
+        }
+
         g_filePath = newPath;
     } else {
         printf("Dateipfad abgebrochen, Auswahl bleibt unverändert\n");
@@ -153,12 +160,20 @@ void gtkWindow(){
     GtkCssProvider* provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(
         provider,
-        "* {background-color: black; color: white}",
+        "* {background-color: black; color: white}"
+        ".boxed-area {"
+        "   border: 2px solid white;"
+        "   border-radius: 8px;"
+        "   padding: 10px;"
+        "}",
         -1,
         NULL);
         
-    GtkStyleContext* context = gtk_widget_get_style_context(window);
-    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    gtk_style_context_add_provider_for_screen(
+        gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
     g_object_unref(provider);
 
 
@@ -166,28 +181,35 @@ void gtkWindow(){
 
     //Inhalt
 
-    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+
+    hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
 
     GtkWidget* buttonSave = gtk_button_new_with_label("Save");
     GtkWidget* buttonBrowse = gtk_button_new_with_label("Browse");
-    
+    gtk_widget_set_size_request(buttonSave, 130, 40);
+    gtk_widget_set_size_request(buttonBrowse, 130, 40);
 
 
+    hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_style_context_add_class(gtk_widget_get_style_context(hbox2), "boxed-area");
 
     GtkWidget* scroll = gtk_scrolled_window_new(NULL, NULL);
     GtkWidget* textview = gtk_text_view_new();
     g_textview = textview;
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
     gtk_container_add(GTK_CONTAINER(scroll), textview);
-    gtk_widget_set_size_request(scroll, 400, 300);
+    gtk_widget_set_size_request(scroll, windowX, windowY);
 
-    gtk_box_pack_start(GTK_BOX(hbox), buttonSave, FALSE, FALSE, 5);
-    gtk_box_pack_start(GTK_BOX(hbox), buttonBrowse, FALSE, FALSE, 5);
-    gtk_box_pack_start(GTK_BOX(hbox), scroll, TRUE, TRUE, 5);
 
-    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox1), buttonSave, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox1), buttonBrowse, FALSE, FALSE, 5);
+
+
+    gtk_box_pack_start(GTK_BOX(hbox2), scroll, TRUE, TRUE, 5);
+
+    gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox2, FALSE, FALSE, 5);
 
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
