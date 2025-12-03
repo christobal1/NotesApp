@@ -59,6 +59,60 @@ void on_button_clicked_save(GtkWidget* widget, gpointer data);
 
 
 
+char* load_from_file(char* filePath){
+
+    int fd = open(filePath, O_RDONLY);
+
+    if(fd == -1){
+        perror("Fehler bei Öffnen der Datei (Für Lesen)\n");
+        return NULL;
+    }
+
+    size_t capacity = 4096;
+    size_t length = 0;
+    char* buffer = malloc(capacity);
+    if(!buffer){
+        perror("Fehler bei malloc (Für Lesen)\n");
+        close(fd);
+        return NULL;
+    }
+
+
+    ssize_t bytesRead;
+
+    while((bytesRead = read(fd, buffer + length, capacity - length)) > 0){
+        length += bytesRead;
+        //Speicher ggf vergrößern
+        if(length == capacity){
+            capacity *= 2;
+            char* tmp = realloc(buffer, capacity);
+
+            if(!tmp){
+                perror("Fehler bei malloc (Für Realloc bei Lesen)\n");
+                free(buffer);
+                close(fd);
+                return NULL;
+            }
+
+            buffer = tmp;
+
+        }
+    }
+
+    if(bytesRead < 0){
+        perror("Fehler bei Lesen\n");
+        free(buffer);
+        close(fd);
+        return NULL;
+    }
+
+    close(fd);
+    buffer[length] = '\0';
+
+    return buffer;
+}
+
+
 
 
 
@@ -70,7 +124,7 @@ void save_to_file(char* text, char* filePath){
     int fd = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
     if(fd == -1){
-        perror("Fehler beim Öffnen der Datei\n");
+        perror("Fehler beim Öffnen der Datei (Für Schreiben)\n");
         return;
     }
 
@@ -109,6 +163,9 @@ void on_button_clicked_save(GtkWidget* widget, gpointer data){
 }
 
 
+
+
+
 void on_button_clicked_browse(GtkWidget* widget, gpointer data){
 
     char* newPath = file_selection();
@@ -120,6 +177,14 @@ void on_button_clicked_browse(GtkWidget* widget, gpointer data){
         }
 
         g_filePath = newPath;
+
+        char* content = load_from_file(g_filePath);
+        if(content){
+            GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_textview));
+            gtk_text_buffer_set_text(buffer, content, -1);
+            free(content);
+        }
+
     } else {
         printf("Dateipfad abgebrochen, Auswahl bleibt unverändert\n");
     }
