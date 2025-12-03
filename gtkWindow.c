@@ -273,7 +273,8 @@ void gtkWindow(){
     GtkCssProvider* provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(
         provider,
-        "* {background-color: black; color: white}"
+        "* { background-color: #111; color: white; }"
+        "textview { caret-color: white; }"
         ".boxed-area {"
         "   border: 2px solid white;"
         "   border-radius: 8px;"
