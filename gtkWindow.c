@@ -5,6 +5,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include "tinyfiledialogs.h"
+#include "kirAlgorithm.h"
 
 char programmName[] = "NotesApp";
 GtkWidget* window;
@@ -172,7 +173,7 @@ void on_button_clicked_browse(GtkWidget* widget, gpointer data){
 
     if(newPath){
 
-        if(g_filePath != NULL && g_filePath != "/tmp/notesapp_placeholder.txt"){
+        if(g_filePath != NULL && strcmp(g_filePath, "/tmp/notesapp_placeholder.txt") != 0){
             free(g_filePath);
         }
 
@@ -190,6 +191,53 @@ void on_button_clicked_browse(GtkWidget* widget, gpointer data){
     }
 
 }
+
+
+
+
+
+
+
+
+
+void on_button_clicked_encrypt(GtkWidget* widget, gpointer data){
+
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_textview));
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+
+    char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    
+    kirEncrypt(text);
+
+    gtk_text_buffer_set_text(buffer, text, -1);
+
+    g_free(text);
+
+}
+
+
+
+
+
+
+
+
+void on_button_clicked_decrypt(GtkWidget* widget, gpointer data){
+
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_textview));
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+
+    char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+
+    kirDecrypt(text);
+
+    gtk_text_buffer_set_text(buffer, text, -1);
+
+    g_free(text);
+}
+
 
 
 
@@ -252,8 +300,12 @@ void gtkWindow(){
 
     GtkWidget* buttonSave = gtk_button_new_with_label("Save");
     GtkWidget* buttonBrowse = gtk_button_new_with_label("Browse");
+    GtkWidget* buttonEncrypt = gtk_button_new_with_label("Encrypt");
+    GtkWidget* buttonDecrypt = gtk_button_new_with_label("Decrypt");
     gtk_widget_set_size_request(buttonSave, 130, 40);
     gtk_widget_set_size_request(buttonBrowse, 130, 40);
+    gtk_widget_set_size_request(buttonEncrypt, 130, 40);
+    gtk_widget_set_size_request(buttonDecrypt, 130, 40);
 
 
     hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -269,6 +321,8 @@ void gtkWindow(){
 
     gtk_box_pack_start(GTK_BOX(hbox1), buttonSave, FALSE, FALSE, 5);
     gtk_box_pack_start(GTK_BOX(hbox1), buttonBrowse, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox1), buttonEncrypt, FALSE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(hbox1), buttonDecrypt, FALSE, FALSE, 5);
 
 
     gtk_box_pack_start(GTK_BOX(hbox2), scroll, TRUE, TRUE, 5);
@@ -285,6 +339,8 @@ void gtkWindow(){
     
     g_signal_connect(buttonSave, "clicked", G_CALLBACK(on_button_clicked_save), NULL);
     g_signal_connect(buttonBrowse, "clicked", G_CALLBACK(on_button_clicked_browse), NULL);
+    g_signal_connect(buttonEncrypt, "clicked", G_CALLBACK(on_button_clicked_encrypt), NULL);
+    g_signal_connect(buttonDecrypt, "clicked", G_CALLBACK(on_button_clicked_decrypt), NULL);
 
     // ----------------------------------------------------
 
