@@ -1,19 +1,22 @@
 TODO:
 
 # Hohe Priorität
-[ ] Textdatei-Auswahl -> Laden von Text in Textbox
+[x] Textdatei-Auswahl -> Laden von Text in Textbox
 [ ] 
 [ ]
 [ ]
 
 # Mittlere Priorität
-[ ] Exportieren in andere Formate
+[ ]
 [x] Auswahl des Speicherortes
-[ ]
-[ ]
+[ ] Settings
+[ ] Autosave
+[ ] Undo
+[ ] 
+[ ] 
 
 # Niedrige Priorität
-[ ] Verschlüsselung von Dateien
-[ ]
-[ ]
-[ ]
+[ ] Verschlüsselung von Dateien mit Passwort
+[ ] Wort und Zeichenzähler
+[ ] Fonts, Farben, Textgrößen
+[ ] Suchen und Ersetzen
