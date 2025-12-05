@@ -22,8 +22,7 @@ char* makeMutable(const char* src){
     return buf;
 }
 
-char* kirEncrypt(char text[]){
-    int length = strlen(text);
+char* kirEncrypt(unsigned char* text, int length){
 
     int a=2;
     while((length % a) != 0){
@@ -33,15 +32,22 @@ char* kirEncrypt(char text[]){
     int b = length / a;
 
     for(int i=0; i<length; i++){
-        text[i] = text[i] + b;
+        if((i % a) == 0){
+            text[i] = text[i] + a;
+        } else if ((i % 2) == 0){
+            text[i] = text[i] - 3;
+        } else if ((i % 3) == 0){
+            text[i] = text[i] + 5;
+        } else {
+            text[i] = text[i] + b;
+        }
     }
 
-    return text;
+    return (char*)text;
     
 }
 
-char* kirDecrypt(char text[]){
-    int length = strlen(text);
+char* kirDecrypt(unsigned char* text, int length){
 
     int a=2;
     while((length % a) != 0){
@@ -51,8 +57,16 @@ char* kirDecrypt(char text[]){
     int b = length / a;
 
     for(int i=0; i<length; i++){
-        text[i] = text[i] - b;
+        if((i % a) == 0){
+            text[i] = text[i] - a;
+        } else if ((i % 2) == 0){
+            text[i] = text[i] + 3;
+        } else if ((i % 3) == 0){
+            text[i] = text[i] - 5;
+        } else {
+            text[i] = text[i] - b;
+        }
     }
 
-    return text;
+    return (char*)text;
 }

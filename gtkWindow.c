@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <glib.h>
 #include "tinyfiledialogs.h"
 #include "kirAlgorithm.h"
 
@@ -207,11 +208,20 @@ void on_button_clicked_encrypt(GtkWidget* widget, gpointer data){
     gtk_text_buffer_get_bounds(buffer, &start, &end);
 
     char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+
+    int len = strlen(text);
+    unsigned char* buf = malloc(len);
+    memcpy(buf, text, len);
     
-    kirEncrypt(text);
+    kirEncrypt(buf, len);
 
-    gtk_text_buffer_set_text(buffer, text, -1);
+    //base64-kodieren -> gültiges UTF-8 als Ausgabe
+    gchar* b64 = g_base64_encode(buf, (gsize)len);
 
+    gtk_text_buffer_set_text(buffer, b64, -1);
+
+    g_free(b64);
+    free(buf);
     g_free(text);
 
 }
@@ -229,13 +239,33 @@ void on_button_clicked_decrypt(GtkWidget* widget, gpointer data){
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(buffer, &start, &end);
 
-    char* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    char* b64text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    if(!b64text) return;
 
-    kirDecrypt(text);
+    gsize out_len = 0;
+    guchar* raw = g_base64_decode(b64text, &out_len);
 
-    gtk_text_buffer_set_text(buffer, text, -1);
+    if(raw && out_len > 0){
+        kirDecrypt(raw, (int)out_len);
 
-    g_free(text);
+        char* outstr = malloc(out_len + 1);
+        memcpy(outstr, raw, out_len);
+        outstr[out_len] = '\0';
+
+        //Falls outstr kein gültiges UTF-8 Format ist, erst g_utf_8_validate prüfen
+        if(g_utf8_validate(outstr, out_len, NULL)){
+            gtk_text_buffer_set_text(buffer, outstr, -1);
+        } else {
+            gtk_text_buffer_set_text(buffer, "Entschlüsselt, aber kein gültiges UTF-8", -1);
+        }
+
+        free(outstr);
+
+    }
+
+    if(raw) g_free(raw);
+
+    g_free(b64text);
 }
 
 
